@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/css/uikit.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .title {
+      font-family: 'Merriweather', serif;
+      font-weight: 700;
+      color: #808080;
+      flex: 0 0 auto;
+      font-size: 2.5rem;
+      padding: 0.5rem;
+      height: 3rem;
+      /* Adjusted height for title area */
+      text-align: center;
+    }
+
+    .keyboard {
+      flex: 0 0 auto;
+      padding: 1rem;
+      height: 15rem;
+      /* Adjusted height for keyboard area */
+    }
+
+    .content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 18rem);
+      /* Adjust height based on title and keyboard height */
+    }
+
+    .tiles-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 0.5rem;
+    }
+
+    .tile {
+      width: 2.7rem;
+      aspect-ratio: 0.8;
+      border: 1px solid #d3d6da;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .key {
+      background-color: #d3d6da;
+      border: 1px solid #c4c4c4;
+      border-radius: 4px;
+      padding: 0.5rem;
+      margin: 0 0.25rem;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      width: 2rem;
+      cursor: pointer;
+    }
+
+    .key.wide {
+      width: 3rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="title uk-background-muted uk-light">
+      <small>dan's </small>WORDLE
+    </div>
+    <div class="content uk-background-muted">
+      <div class="tiles-container">
+        <!-- 6 x 5 -->
+        <div class="tile" id="r0c0"></div>
+        <div class="tile" id="r0c1"></div>
+        <div class="tile" id="r0c2"></div>
+        <div class="tile" id="r0c3"></div>
+        <div class="tile" id="r0c4"></div>
+
+        <div class="tile" id="r1c0"></div>
+        <div class="tile" id="r1c1"></div>
+        <div class="tile" id="r1c2"></div>
+        <div class="tile" id="r1c3"></div>
+        <div class="tile" id="r1c4"></div>
+
+        <div class="tile" id="r2c0"></div>
+        <div class="tile" id="r2c1"></div>
+        <div class="tile" id="r2c2"></div>
+        <div class="tile" id="r2c3"></div>
+        <div class="tile" id="r2c4"></div>
+
+        <div class="tile" id="r3c0"></div>
+        <div class="tile" id="r3c1"></div>
+        <div class="tile" id="r3c2"></div>
+        <div class="tile" id="r3c3"></div>
+        <div class="tile" id="r3c4"></div>
+
+        <div class="tile" id="r4c0"></div>
+        <div class="tile" id="r4c1"></div>
+        <div class="tile" id="r4c2"></div>
+        <div class="tile" id="r4c3"></div>
+        <div class="tile" id="r4c4"></div>
+
+        <div class="tile" id="r5c0"></div>
+        <div class="tile" id="r5c1"></div>
+        <div class="tile" id="r5c2"></div>
+        <div class="tile" id="r5c3"></div>
+        <div class="tile" id="r5c4"></div>
+
+      </div>
+    </div>
+    <div class="keyboard uk-background-muted">
+      <div class="keyboard-row">
+        <div class="key">Q</div>
+        <div class="key">W</div>
+        <div class="key">E</div>
+        <div class="key">R</div>
+        <div class="key">T</div>
+        <div class="key">Y</div>
+        <div class="key">U</div>
+        <div class="key">I</div>
+        <div class="key">O</div>
+        <div class="key">P</div>
+      </div>
+      <div class="keyboard-row">
+        <div class="key">A</div>
+        <div class="key">S</div>
+        <div class="key">D</div>
+        <div class="key">F</div>
+        <div class="key">G</div>
+        <div class="key">H</div>
+        <div class="key">J</div>
+        <div class="key">K</div>
+        <div class="key">L</div>
+      </div>
+      <div class="keyboard-row">
+        <div class="key wide">ENTER</div>
+        <div class="key">Z</div>
+        <div class="key">X</div>
+        <div class="key">C</div>
+        <div class="key">V</div>
+        <div class="key">B</div>
+        <div class="key">N</div>
+        <div class="key">M</div>
+        <div class="key wide">DEL</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit-icons.min.js"></script>
+
+  <script defer>
+    let currentRow = 0;
+    let currentCol = 0;
+
+    function typedLetter(letter) {
+      if (currentCol > 4) return;
+      const id = `r${currentRow}c${currentCol}`
+      const tile = document.getElementById(id);
+      tile.innerHTML = letter;
+      currentCol++;
+    }
+
+    function typedEnter() {
+      if (currentCol <= 4) return;
+      const tiles = [...document.querySelectorAll(`[id^="r${currentRow}c"]`)];
+      const userWord = tiles.map(tile => tile.innerText).join('');
+      console.log(userWord);
+    }
+
+    function typedDel() {
+      if (currentCol > 0) currentCol--;
+      const id = `r${currentRow}c${currentCol}`
+      const tile = document.getElementById(id);
+      tile.innerText = '';
+    }
+
+    document.querySelectorAll('.key').forEach(key => {
+      key.addEventListener('click', () => {
+        const content = key.textContent;
+        if (content == "ENTER" || content == "DEL") {
+          content == "ENTER" ? typedEnter() : typedDel();
+        } else {
+          typedLetter(content)
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
