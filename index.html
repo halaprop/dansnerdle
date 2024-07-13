@@ -129,46 +129,6 @@
     </div>
     <div class="content uk-background-muted">
       <div class="tiles-container flip-container">
-        <!-- 6 x 5 -->
-        <!-- <div class="tile" id="r0c0">
-          <div class="flip-card-front">F</div>
-          <div class="flip-card-back">F</div>
-        </div>
-        <div class="tile" id="r0c1"></div>
-        <div class="tile" id="r0c2"></div>
-        <div class="tile" id="r0c3"></div>
-        <div class="tile" id="r0c4"></div>
-
-        <div class="tile" id="r1c0"></div>
-        <div class="tile" id="r1c1"></div>
-        <div class="tile" id="r1c2"></div>
-        <div class="tile" id="r1c3"></div>
-        <div class="tile" id="r1c4"></div>
-
-        <div class="tile" id="r2c0"></div>
-        <div class="tile" id="r2c1"></div>
-        <div class="tile" id="r2c2"></div>
-        <div class="tile" id="r2c3"></div>
-        <div class="tile" id="r2c4"></div>
-
-        <div class="tile" id="r3c0"></div>
-        <div class="tile" id="r3c1"></div>
-        <div class="tile" id="r3c2"></div>
-        <div class="tile" id="r3c3"></div>
-        <div class="tile" id="r3c4"></div>
-
-        <div class="tile" id="r4c0"></div>
-        <div class="tile" id="r4c1"></div>
-        <div class="tile" id="r4c2"></div>
-        <div class="tile" id="r4c3"></div>
-        <div class="tile" id="r4c4"></div>
-
-        <div class="tile" id="r5c0"></div>
-        <div class="tile" id="r5c1"></div>
-        <div class="tile" id="r5c2"></div>
-        <div class="tile" id="r5c3"></div>
-        <div class="tile" id="r5c4"></div> -->
-
       </div>
     </div>
     <div class="keyboard uk-background-muted">
@@ -258,17 +218,25 @@
       setLetter(currentRow, currentCol++, letter)
     }
 
-    function typedEnter() {
+    async function typedEnter() {
       if (currentCol <= 4) return;
       const tiles = [...document.querySelectorAll(`[id^="r${currentRow}c"]`)];
-      const userWord = tiles.map(tile => {
+      const guess = tiles.map(tile => {
         const tileFront = tile.querySelector('.flip-card-front');
         return tileFront.innerText.toLowerCase();
       }).join('');
-      if (Dictionary.checkWord(userWord)) {
-        console.log('good word');
-      } else {
-        console.log('not a word');
+      if (Dictionary.checkWord(guess)) {
+        const win = await checkWord(guess);
+        if (win) {
+          console.log("WIN")
+        } else {
+          if (currentRow < 5) {
+            currentRow++;
+            currentCol = 0;
+          } else {
+            console.log("LOSE")
+          }
+        }
       }
     }
 
@@ -312,6 +280,21 @@
         await flip(tile, color);
       }
     }
+
+    async function checkWord(guess) {
+      const colors = {
+        correct: 'rgb(121, 168, 107)',
+        contains: 'rgb(197, 180, 102)',
+        incorrect: 'rgb(121, 124, 126)',
+      };
+
+      console.log('checking', targetWord, guess);
+      const checkStates = Dictionary.checkStates(targetWord, guess);
+      const checkColors = checkStates.map(cs => colors[cs]);
+      await flipRow(currentRow, checkColors);
+      return guess == targetWord;
+    }
+
   </script>
 </body>
 
