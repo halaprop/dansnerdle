@@ -21,6 +21,10 @@
       box-sizing: border-box;
     }
 
+    .uk-modal.uk-open {
+      background-color: rgba(200, 200, 200, 0.25);
+    }
+
     .title {
       font-weight: 700;
       color: #808080;
@@ -120,14 +124,14 @@
 </head>
 
 <body>
-  <div class="container">
+  <div id="app" class="container">
 
     <div id="alert-modal" uk-modal>
       <div class="uk-modal-dialog uk-modal-body uk-text-center">
         <h2 id="modal-title" class="uk-modal-title"></h2>
         <div id="modal-content"></div>
         <p class="uk-flex uk-flex-center">
-          <button id="modal-button" class="uk-button uk-button-default uk-modal-close" type="button">Okay</button>
+          <button id="modal-button" class="uk-button uk-button-default uk-modal-close" type="button"></button>
         </p>
       </div>
     </div>
@@ -179,6 +183,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit-icons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
   <script type="module" defer>
@@ -187,12 +192,22 @@
 
     let currentRow = 0;
     let currentCol = 0;
+    let targetWord = '';
 
-    const targetWord = Dictionary.randomWord();
-    console.log(targetWord)
+    const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    function play() {
+      currentRow = 0;
+      currentCol = 0;
+      targetWord = Dictionary.randomWord();
+      console.log(targetWord)
+      buildTiles();
+    }
+    play();
 
     function buildTiles() {
       const tilesContainer = document.querySelector('.tiles-container');
+      tilesContainer.innerHTML = '';
       for (let row = 0; row < 6; row++) {
         for (let col = 0; col < 5; col++) {
           tilesContainer.innerHTML += `
@@ -203,33 +218,10 @@
           `;
         }
       }
-      const tiles = [...document.querySelectorAll('.tile')];
-      tiles.forEach(tile => {
-        tile.addEventListener('click', async () => {
-          //flip(tile, '#ff0000');
-          flipRow(0, ['red', 'yellow', 'green', 'blue', 'pink'])
-        });
-      })
     }
-    buildTiles();
-
-    const alertModal = UIkit.modal('#alert-modal');
-
-    function showModal(title, content, buttonText='Okay') {
-      document.getElementById('modal-title').innerText = title;
-      document.getElementById('modal-content').innerHTML = content;
-      document.getElementById('modal-button').innerText = buttonText;
-
-      alertModal.show();
-      gsap.fromTo("#alert-modal .uk-modal-dialog",
-        { y: "-100%", opacity: 0 },
-        { duration: 1, y: "50%", opacity: 1, ease: "power2.out" }
-      );
-    }
-    setTimeout(() => showModal('Correct!', 'You really crushed it'), 2000)
 
     function setLetter(row, col, letter) {
-      const id = `r${row}c${col}`
+      const id = `r${row}c${col}`;
       const tile = document.getElementById(id);
       const tileFront = tile.querySelector('.flip-card-front');
       const tileBack = tile.querySelector('.flip-card-back');
@@ -251,14 +243,20 @@
       }).join('');
       if (Dictionary.isWord(guess)) {
         const win = await scoreWordAndFlip(guess);
-        currentRow++;
         if (win) {
-          console.log("WIN")
+          const rowID = `r${currentRow}c0`;
+          presentConfetti(5);
+          await pause(2000);
+          await showModal('Great Job!', '', rowID);
+          play();
         } else {
-          if (currentRow < 6) {
+          if (currentRow < 5) {
+            currentRow++;
             currentCol = 0;
           } else {
-            console.log("LOSE")
+            const message = `The word was: ${targetWord.toUpperCase()}`;
+            await showModal('Good Try!', message, 'r5c0');
+            play();
           }
         }
       }
@@ -271,13 +269,11 @@
 
     document.querySelectorAll('.key').forEach(key => {
       key.addEventListener('click', () => {
-        if (currentRow < 6) {
-          const content = key.textContent;
-          if (content == "ENTER" || content == "DEL") {
-            content == "ENTER" ? typedEnter() : typedDel();
-          } else {
-            typedLetter(content)
-          }
+        const content = key.textContent;
+        if (content == "ENTER" || content == "DEL") {
+          content == "ENTER" ? typedEnter() : typedDel();
+        } else {
+          typedLetter(content)
         }
       });
     });
@@ -313,12 +309,89 @@
         contains: 'rgb(197, 180, 102)',
         incorrect: 'rgb(121, 124, 126)',
       };
-
-      console.log('checking', targetWord, guess);
       const checkStates = Dictionary.checkStates(targetWord, guess);
       const checkColors = checkStates.map(cs => colors[cs]);
       await flipRow(currentRow, checkColors);
       return guess == targetWord;
+    }
+
+    function showModal(title, content, atElementY, buttonText = 'Play Again') {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-content').innerHTML = content;
+      document.getElementById('modal-button').innerText = buttonText;
+
+      const modalContainer = document.getElementById('alert-modal');
+      const modalBody = modalContainer.querySelector('.uk-modal-dialog');
+
+      let yPosition = '50%';
+      const element = document.getElementById(atElementY);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const yOffset = window.pageYOffset || document.documentElement.scrollTop;
+        const elementY = rect.bottom + yOffset;
+        const modalHeight = modalBody.offsetHeight;
+        yPosition = `${elementY - modalHeight}px`;
+      }
+
+      // Reset the modal body's position
+      modalBody.style.transform = "translateY(-100%)";
+
+      // Show the modal
+      UIkit.modal('#alert-modal').show();
+
+      // Animate the modal body
+      gsap.fromTo(
+        modalBody,
+        { y: "-100%" },
+        { duration: 1, y: yPosition, ease: "power3.out" }
+      );
+
+      return new Promise(resolve => {
+        const onHidden = () => {
+          modalContainer.removeEventListener('hidden', onHidden);
+          resolve();
+        };
+        modalContainer.addEventListener('hidden', onHidden);
+      });
+    }
+    // test the modal:
+    // setTimeout(() => {
+    //   showModal("foo", "bar", "r2c0", "baz").then(() => {
+    //     console.log("done")
+    //   })
+    // }, 1000);
+
+    async function presentConfetti(count) {
+      const canvas = document.createElement('canvas');
+      canvas.id = 'confetti-canvas';
+      canvas.style.zIndex = "100";
+      canvas.style.position = 'absolute';
+      canvas.style.left = '0px';
+      canvas.style.top = '0px';
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+      const parent = document.getElementById('app');
+      parent.appendChild(canvas);
+      const confettiEffect = confetti.create(canvas, { resize: true, useWorker: true });
+
+      // todo: scale based on row number and Jim mode
+      const randoParams = () => {
+        return {
+          origin: { x: 0.2 + Math.random() * 0.6, y: 0.2 + Math.random() * 0.6 },
+          particleCount: 50 + Math.random() * 100,
+          spread: 45 + Math.random() * 135,
+          ticks: 150 + Math.random() * 100,
+          drift: (Math.random() > 0.5 ? 2 : -2) * Math.random(),
+        }
+      };
+      let promises = [];
+      for (let i = 0; i < count; i++) {
+        const delay = i * 600
+        promises.push(pause(delay).then(() => confettiEffect(randoParams())));
+      }
+      return Promise.all(promises).then(() => {
+        canvas.remove();
+      });
     }
 
   </script>
