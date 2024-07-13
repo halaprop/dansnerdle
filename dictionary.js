@@ -8,7 +8,7 @@ export default class Dictionary {
     return array.slice(i5,i5+5);
   }
 
-  static findWord(array, word) {
+  static binSearch(array, word) {
     const count = array.length/5;
     let lowIndex = 0;
     let highIndex = count - 1;
@@ -23,14 +23,14 @@ export default class Dictionary {
     return highIndex >= 0 && word === this.getWord(array, highIndex);
   }
 
-  static getTargetWord() {
+  static randomWord() {
     const count = (targetWords.length / 5)-1;
     const index = Math.trunc(Math.random()*count);
     return this.getWord(targetWords, index);
   }
 
-  static checkWord(word) {
-    return this.findWord(words, word);
+  static isWord(word) {
+    return this.binSearch(words, word);
   }
 
   static checkStates(targetWord, guess) {
@@ -38,8 +38,7 @@ export default class Dictionary {
     const letters = guess.split('');
     const targetLetters = targetWord.split('');
     for (let i=0; i<5; i++) {
-      if (letters[i] === ' ') checkStates[i] = "unknown";
-      else if (targetLetters[i] === letters[i]) {
+      if (targetLetters[i] === letters[i]) {
         checkStates[i] = "correct";
         targetLetters[i] = '';
         letters[i] = '';
@@ -56,35 +55,4 @@ export default class Dictionary {
     return checkStates;
   }
 
-  static get lauds() {
-    return [
-      ['unbelievable', 'mind-boggling', 'sensational', 'incredible', 'spectacular', 'superior', 'phenomenal', 'extraordinary'], 
-      ['unbelievable', 'mind-boggling', 'sensational', 'incredible', 'spectacular', 'superior', 'phenomenal', 'extraordinary'], 
-      ['terrific', 'fantastic', 'awesome', 'dynamite', 'marvelous', 'stellar', 'superb', 'amazing'],
-      ['outstanding', 'excellent', 'fabulous', 'fantastic', 'splendid', 'groovy', 'great'],
-      ['good enough', 'fine', 'good', 'respectable', 'satisfactory', 'swell', 'decent'], 
-      ['adequate', 'meh', 'fair', 'mediocre', 'middling', 'passable', 'so-so', 'minimal']
-    ];
-  }
-
-  static laudWord(row) {
-    const array = this.lauds[row];
-    return array[Math.floor(Math.random()*array.length)];
-  }
-
-  static laudPhrase(row) {
-    const laud = this.laudWord(row);
-    const lastWord = this.laudWord(4);
-    const article = laud.startsWith('o') ? "an" : "a";
-
-    const phrases = [
-      `Incredible! That was absoutely ${laud}!`,
-      `Wow! That was ${laud}!`,
-      `Great round. You're ${laud}!`,
-      `Way to go! That was ${article} ${laud} round!`,
-      `Good. You played ${article} ${laud} round!`,
-      `It was ${laud}, okay? We'll call it ${lastWord}.`
-    ];
-    return phrases[row];
-  }
 }
