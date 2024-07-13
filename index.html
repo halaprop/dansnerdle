@@ -131,7 +131,7 @@
         <h2 id="modal-title" class="uk-modal-title"></h2>
         <div id="modal-content"></div>
         <p class="uk-flex uk-flex-center">
-          <button id="modal-button" class="uk-button uk-button-default uk-modal-close" type="button"></button>
+          <button id="modal-button" class="uk-button uk-button-default uk-modal-close" type="button">Play Again</button>
         </p>
       </div>
     </div>
@@ -241,13 +241,14 @@
         const tileFront = tile.querySelector('.flip-card-front');
         return tileFront.innerText.toLowerCase();
       }).join('');
+
+      const rowID = `r${currentRow}c0`;
       if (Dictionary.isWord(guess)) {
         const win = await scoreWordAndFlip(guess);
         if (win) {
-          const rowID = `r${currentRow}c0`;
           presentConfetti(5);
           await pause(2000);
-          await showModal('Great Job!', '', rowID);
+          await showModal({ title: 'Great Job!', atElementY: rowID });
           play();
         } else {
           if (currentRow < 5) {
@@ -255,10 +256,13 @@
             currentCol = 0;
           } else {
             const message = `The word was: ${targetWord.toUpperCase()}`;
-            await showModal('Good Try!', message, 'r5c0');
+            await showModal({ title: 'Good Try!', content: message, atElementY: 'r5c0' });
             play();
           }
         }
+      } else {
+        const content = `<strong>"${guess.toUpperCase()}"</strong> isn't a word`;
+        await showModal( { content, atElementY: rowID, duration: 0.1 });
       }
     }
 
@@ -315,7 +319,13 @@
       return guess == targetWord;
     }
 
-    function showModal(title, content, atElementY, buttonText = 'Play Again') {
+    function showModal(params) {
+      const title = params.title || '';
+      const content = params.content || '';
+      const buttonText = params.buttonText || 'Okay';
+      const atElementY = params.atElementY || '';
+      const duration = params.duration || 1;
+
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-content').innerHTML = content;
       document.getElementById('modal-button').innerText = buttonText;
@@ -343,7 +353,7 @@
       gsap.fromTo(
         modalBody,
         { y: "-100%" },
-        { duration: 1, y: yPosition, ease: "power3.out" }
+        { duration, y: yPosition, ease: "power3.out" }
       );
 
       return new Promise(resolve => {
@@ -354,12 +364,6 @@
         modalContainer.addEventListener('hidden', onHidden);
       });
     }
-    // test the modal:
-    // setTimeout(() => {
-    //   showModal("foo", "bar", "r2c0", "baz").then(() => {
-    //     console.log("done")
-    //   })
-    // }, 1000);
 
     async function presentConfetti(count) {
       const canvas = document.createElement('canvas');
