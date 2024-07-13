@@ -57,6 +57,10 @@
       gap: 0.5rem;
     }
 
+    .flip-container {
+      perspective: 1000px;
+    }
+
     .tile {
       width: 2.7rem;
       aspect-ratio: 0.8;
@@ -67,6 +71,30 @@
       font-size: 2rem;
       font-weight: bold;
       text-transform: uppercase;
+      transform-style: preserve-3d;
+      transform: rotateY(0deg);
+      transition: transform 1s;
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backface-visibility: hidden;
+      position: absolute;
+    }
+
+    .flip-card-front {
+      color: black;
+    }
+
+    .flip-card-back {
+      color: white;
+      background-color: #33cc33;
+      transform: rotateY(180deg);
     }
 
     .keyboard-row {
@@ -97,12 +125,15 @@
 <body>
   <div class="container">
     <div class="title uk-background-muted uk-light">
-      <small>dan's </small>WORDLE
+      <small>dan's </small>NERDLE
     </div>
     <div class="content uk-background-muted">
-      <div class="tiles-container">
+      <div class="tiles-container flip-container">
         <!-- 6 x 5 -->
-        <div class="tile" id="r0c0"></div>
+        <!-- <div class="tile" id="r0c0">
+          <div class="flip-card-front">F</div>
+          <div class="flip-card-back">F</div>
+        </div>
         <div class="tile" id="r0c1"></div>
         <div class="tile" id="r0c2"></div>
         <div class="tile" id="r0c3"></div>
@@ -136,7 +167,7 @@
         <div class="tile" id="r5c1"></div>
         <div class="tile" id="r5c2"></div>
         <div class="tile" id="r5c3"></div>
-        <div class="tile" id="r5c4"></div>
+        <div class="tile" id="r5c4"></div> -->
 
       </div>
     </div>
@@ -181,30 +212,69 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit-icons.min.js"></script>
 
-  <script defer>
+  <script type="module" defer>
+
+    import Dictionary from './dictionary.js';
+
     let currentRow = 0;
     let currentCol = 0;
 
+    const targetWord = Dictionary.getTargetWord();
+    console.log(targetWord)
+
+    function buildTiles() {
+      const tilesContainer = document.querySelector('.tiles-container');
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 5; col++) {
+          tilesContainer.innerHTML += `
+            <div class="tile" id="r${row}c${col}">
+              <div class="flip-card-front"></div>
+              <div class="flip-card-back"></div>
+            </div>
+          `;
+        }
+      }
+      const tiles = [...document.querySelectorAll('.tile')];
+      tiles.forEach(tile => {
+        tile.addEventListener('click', async () => {
+          //flip(tile, '#ff0000');
+          flipRow(0, ['red', 'yellow', 'green', 'blue', 'pink'])
+        });
+      })
+    }
+    buildTiles();
+
+    function setLetter(row, col, letter) {
+      const id = `r${row}c${col}`
+      const tile = document.getElementById(id);
+      const tileFront = tile.querySelector('.flip-card-front');
+      const tileBack = tile.querySelector('.flip-card-back');
+      tileFront.innerHTML = letter;
+      tileBack.innerHTML = letter;
+    }
+
     function typedLetter(letter) {
       if (currentCol > 4) return;
-      const id = `r${currentRow}c${currentCol}`
-      const tile = document.getElementById(id);
-      tile.innerHTML = letter;
-      currentCol++;
+      setLetter(currentRow, currentCol++, letter)
     }
 
     function typedEnter() {
       if (currentCol <= 4) return;
       const tiles = [...document.querySelectorAll(`[id^="r${currentRow}c"]`)];
-      const userWord = tiles.map(tile => tile.innerText).join('');
-      console.log(userWord);
+      const userWord = tiles.map(tile => {
+        const tileFront = tile.querySelector('.flip-card-front');
+        return tileFront.innerText.toLowerCase();
+      }).join('');
+      if (Dictionary.checkWord(userWord)) {
+        console.log('good word');
+      } else {
+        console.log('not a word');
+      }
     }
 
     function typedDel() {
       if (currentCol > 0) currentCol--;
-      const id = `r${currentRow}c${currentCol}`
-      const tile = document.getElementById(id);
-      tile.innerText = '';
+      setLetter(currentRow, currentCol, '');
     }
 
     document.querySelectorAll('.key').forEach(key => {
@@ -217,6 +287,31 @@
         }
       });
     });
+
+    async function flip(element, color) {
+      const elementBack = element.querySelector('.flip-card-back');
+      elementBack.style.backgroundColor = color;
+
+      return new Promise(resolve => {
+        gsap.to(element, {
+          duration: 0.5,
+          rotationY: "+=180",
+          ease: "power3",
+          onComplete: () => {
+            element.classList.toggle('flipped');
+            resolve();
+          }
+        });
+      });
+    }
+
+    async function flipRow(row, colors) {
+      for (let col = 0; col < colors.length; col++) {
+        const tile = document.querySelector(`#r${row}c${col}`);
+        const color = colors[col];
+        await flip(tile, color);
+      }
+    }
   </script>
 </body>
 
