@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+  <title>dan's NERDLE</title>
+  <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/css/uikit.min.css" />
@@ -117,8 +120,13 @@
       cursor: pointer;
     }
 
-    .key.wide {
+    #key-ENTER,
+    #key-DEL {
       width: 3rem;
+    }
+
+    #key-I {
+      min-width: 0.75rem;
     }
   </style>
 </head>
@@ -144,40 +152,6 @@
       </div>
     </div>
     <div class="keyboard uk-background-muted">
-      <div class="keyboard-row">
-        <div class="key">Q</div>
-        <div class="key">W</div>
-        <div class="key">E</div>
-        <div class="key">R</div>
-        <div class="key">T</div>
-        <div class="key">Y</div>
-        <div class="key">U</div>
-        <div class="key">I</div>
-        <div class="key">O</div>
-        <div class="key">P</div>
-      </div>
-      <div class="keyboard-row">
-        <div class="key">A</div>
-        <div class="key">S</div>
-        <div class="key">D</div>
-        <div class="key">F</div>
-        <div class="key">G</div>
-        <div class="key">H</div>
-        <div class="key">J</div>
-        <div class="key">K</div>
-        <div class="key">L</div>
-      </div>
-      <div class="keyboard-row">
-        <div class="key wide">ENTER</div>
-        <div class="key">Z</div>
-        <div class="key">X</div>
-        <div class="key">C</div>
-        <div class="key">V</div>
-        <div class="key">B</div>
-        <div class="key">N</div>
-        <div class="key">M</div>
-        <div class="key wide">DEL</div>
-      </div>
     </div>
   </div>
 
@@ -202,15 +176,16 @@
       targetWord = Dictionary.randomWord();
       console.log(targetWord)
       buildTiles();
+      buildKeys();
     }
     play();
 
     function buildTiles() {
       const tilesContainer = document.querySelector('.tiles-container');
-      tilesContainer.innerHTML = '';
+      let innerHTML = '';
       for (let row = 0; row < 6; row++) {
         for (let col = 0; col < 5; col++) {
-          tilesContainer.innerHTML += `
+          innerHTML += `
             <div class="tile" id="r${row}c${col}">
               <div class="flip-card-front"></div>
               <div class="flip-card-back"></div>
@@ -218,6 +193,37 @@
           `;
         }
       }
+      tilesContainer.innerHTML = innerHTML;
+    }
+
+    function buildKeys() {
+      const keysContainer = document.querySelector('.keyboard');
+      const keyCaps = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL']
+      ];
+      let innerHTML = '';
+      for (let row = 0; row < keyCaps.length; row++) {
+        innerHTML += `<div class="keyboard-row">`;
+        for (let col = 0; col < keyCaps[row].length; col++) {
+          const cap = keyCaps[row][col];
+          innerHTML += `<div id="key-${cap}" class="key">${cap}</div>`
+        }
+        innerHTML += `</div>`
+      }
+      keysContainer.innerHTML = innerHTML;
+
+      document.querySelectorAll('.key').forEach(key => {
+        key.addEventListener('click', () => {
+          const content = key.textContent;
+          if (content == "ENTER" || content == "DEL") {
+            content == "ENTER" ? typedEnter() : typedDel();
+          } else {
+            typedLetter(content)
+          }
+        });
+      });
     }
 
     function setLetter(row, col, letter) {
@@ -262,7 +268,7 @@
         }
       } else {
         const content = `<strong>"${guess.toUpperCase()}"</strong> isn't a word`;
-        await showModal( { content, atElementY: rowID, duration: 0.1, buttonText: 'Okay' });
+        await showModal({ content, atElementY: rowID, duration: 0.1, buttonText: 'Okay' });
       }
     }
 
@@ -270,17 +276,6 @@
       if (currentCol > 0) currentCol--;
       setLetter(currentRow, currentCol, '');
     }
-
-    document.querySelectorAll('.key').forEach(key => {
-      key.addEventListener('click', () => {
-        const content = key.textContent;
-        if (content == "ENTER" || content == "DEL") {
-          content == "ENTER" ? typedEnter() : typedDel();
-        } else {
-          typedLetter(content)
-        }
-      });
-    });
 
     async function flip(element, color) {
       const elementBack = element.querySelector('.flip-card-back');
@@ -307,6 +302,17 @@
       }
     }
 
+    function colorKeys(guess, checkColors) {
+      const colorKey = (keyCap, color) => {
+        const key = document.getElementById(`key-${keyCap.toUpperCase()}`);
+        key.style.backgroundColor = color;
+        key.style.color = 'white';
+      };
+      for (let i = 0; i < 5; i++) {
+        colorKey(guess.charAt(i), checkColors[i]);
+      }
+    }
+
     async function scoreWordAndFlip(guess) {
       const colors = {
         correct: 'rgb(121, 168, 107)',
@@ -316,6 +322,7 @@
       const checkStates = Dictionary.checkStates(targetWord, guess);
       const checkColors = checkStates.map(cs => colors[cs]);
       await flipRow(currentRow, checkColors);
+      colorKeys(guess, checkColors)
       return guess == targetWord;
     }
 
