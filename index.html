@@ -262,7 +262,7 @@
         }
       } else {
         const content = `<strong>"${guess.toUpperCase()}"</strong> isn't a word`;
-        await showModal( { content, atElementY: rowID, duration: 0.1 });
+        await showModal( { content, atElementY: rowID, duration: 0.1, buttonText: 'Okay' });
       }
     }
 
@@ -322,7 +322,7 @@
     function showModal(params) {
       const title = params.title || '';
       const content = params.content || '';
-      const buttonText = params.buttonText || 'Okay';
+      const buttonText = params.buttonText || 'Play Again';
       const atElementY = params.atElementY || '';
       const duration = params.duration || 1;
 
