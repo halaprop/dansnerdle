@@ -213,12 +213,18 @@
         innerHTML += `</div>`
       }
       keysContainer.innerHTML = innerHTML;
-
+      
+      let animating = false;
       document.querySelectorAll('.key').forEach(key => {
-        key.addEventListener('click', () => {
+        key.addEventListener('click', async () => {
+          if (animating) return;
           const content = key.textContent;
-          if (content == "ENTER" || content == "DEL") {
-            content == "ENTER" ? typedEnter() : typedDel();
+          if (content == "ENTER") {
+            animating = true;
+            await typedEnter();
+            animating = false;
+          } else if ( content == "DEL") {
+            typedDel();
           } else {
             typedLetter(content)
           }
